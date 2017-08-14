@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/hold_to_end_workout_button"
+    android:layout_width="@dimen/pulsing_button_width"
+    android:layout_height="@dimen/pulsing_button_height">
+
+    <com.project.dajver.pulsingbutton.view.PulsingButtonBackground
+        android:id="@+id/pulsing_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <com.project.dajver.pulsingbutton.view.PulsingButtonTextView
+        android:id="@+id/pulsing_text"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="@string/hold_to_end_workout"
+        android:textAllCaps="false"
+        android:textColor="@android:color/white"
+        android:textSize="24sp"/>
+
+</FrameLayout>
