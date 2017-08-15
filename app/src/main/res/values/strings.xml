@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">PulsingButton</string>
-    <string name="hold_to_end_workout">Hold on</string>
+    <string name="click_me">Click me</string>
 </resources>

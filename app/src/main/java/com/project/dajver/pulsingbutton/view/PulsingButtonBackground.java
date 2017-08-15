@@ -8,7 +8,6 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
@@ -22,12 +21,9 @@ import com.project.dajver.pulsingbutton.R;
 public class PulsingButtonBackground extends View {
 
     private Paint mSolidPaint;
-    private RectF mSolidRect;
     private float mSolidMultiplier;
-    private float mClipMultiplier;
 
     private Paint mStrokePaint;
-    private RectF mStrokeRect;
     private float mStrokeMultiplier;
 
     private Paint mWipePaint;
@@ -62,9 +58,6 @@ public class PulsingButtonBackground extends View {
         mWipePaint.setColor(Color.WHITE);
         mWipePaint.setAlpha(51);
         mWipePaint.setAntiAlias(true);
-
-        mSolidRect = new RectF();
-        mStrokeRect = new RectF();
 
         resetAnimatedValues();
     }
@@ -163,46 +156,20 @@ public class PulsingButtonBackground extends View {
     protected void onDraw(Canvas canvas) {
         int width = canvas.getWidth();
         float halfWidth = width / 2.0f;
-        float adjustedHalfWidth = halfWidth * 0.78260869565217f;
-        float solidHalfWidth = adjustedHalfWidth * mSolidMultiplier;
-        float strokeHalfWidth = adjustedHalfWidth * mStrokeMultiplier;
-        float strokeDifference = strokeHalfWidth - solidHalfWidth;
+        float solidHalfWidth = halfWidth * mSolidMultiplier;
+        float strokeHalfWidth = halfWidth * mStrokeMultiplier;
 
         int height = canvas.getHeight();
         float halfHeight = height / 2.0f;
-        float solidHalfHeight = halfHeight * mSolidMultiplier * 0.46808510638298f;
-        float strokeHeightDifference = solidHalfHeight + strokeDifference;
+        float solidHalfHeight = halfHeight * mSolidMultiplier;
+        float strokeHalfHeight = halfHeight * mStrokeMultiplier;
 
         canvas.drawARGB(0, 0, 0, 0);
 
-        mStrokeRect.set(halfWidth - strokeHalfWidth, halfHeight - strokeHeightDifference, halfWidth + strokeHalfWidth, halfHeight + strokeHeightDifference);
-        canvas.drawRoundRect(mStrokeRect, strokeHeightDifference, strokeHeightDifference, mStrokePaint);
+        double strokeRadius =  0.515 * Math.sqrt(strokeHalfWidth * strokeHalfWidth + strokeHalfHeight * strokeHalfHeight);
+        canvas.drawCircle(halfWidth, halfHeight, (float) strokeRadius, mStrokePaint);
 
-        mSolidRect.set(halfWidth - solidHalfWidth, halfHeight - solidHalfHeight, halfWidth + solidHalfWidth, halfHeight + solidHalfHeight);
-        canvas.drawRoundRect(mSolidRect, solidHalfHeight, solidHalfHeight, mSolidPaint);
-
-        float clipStart = halfWidth - solidHalfWidth;
-        float clipEnd = clipStart + (solidHalfWidth * 2.0f) * mClipMultiplier;
-        canvas.clipRect(clipStart, 0, clipEnd, height);
-        canvas.drawRoundRect(mSolidRect, solidHalfHeight, solidHalfHeight, mWipePaint);
-    }
-
-    public Animator getWipeAnimator(long animationTimeMs) {
-        ValueAnimator wipeAnimator = ValueAnimator.ofFloat(0.0f, 1.0f).setDuration(animationTimeMs);
-        wipeAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                mClipMultiplier = valueAnimator.getAnimatedFraction();
-                invalidate();
-            }
-        });
-        wipeAnimator.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationCancel(Animator animation) {
-                mClipMultiplier = 0f;
-                invalidate();
-            }
-        });
-        return wipeAnimator;
+        double solidRadius =  0.5 * Math.sqrt(solidHalfWidth * solidHalfWidth + solidHalfHeight * solidHalfHeight);
+        canvas.drawCircle(halfWidth, halfHeight, (float) solidRadius, mSolidPaint);
     }
 }
