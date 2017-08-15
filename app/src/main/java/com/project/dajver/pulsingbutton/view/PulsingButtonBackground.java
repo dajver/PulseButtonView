@@ -8,7 +8,10 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 
@@ -20,13 +23,26 @@ import com.project.dajver.pulsingbutton.R;
 
 public class PulsingButtonBackground extends View {
 
-    private Paint mSolidPaint;
-    private float mSolidMultiplier;
+    private Paint solidPaint;
+    private Paint strokePaint;
+    private Paint ripplePaint;
 
-    private Paint mStrokePaint;
-    private float mStrokeMultiplier;
+    private float solidMultiplier;
+    private float strokeMultiplier;
 
-    private Paint mWipePaint;
+    private float duration = 150;
+    private int frameRate = 15;
+
+    private float speed = 1;
+    private float rippleRadius = 0;
+    private float endRippleRadius = 0;
+    private float rippleX = 0;
+    private float rippleY = 0;
+    private int width = 0;
+    private int height = 0;
+    private int touchAction;
+
+    private Handler handler = new Handler();
 
     public PulsingButtonBackground(Context context) {
         super(context);
@@ -44,20 +60,20 @@ public class PulsingButtonBackground extends View {
     }
 
     private void initialize() {
-        mSolidPaint = new Paint();
-        mSolidPaint.setColor(getResources().getColor(R.color.a_4));
-        mSolidPaint.setAntiAlias(true);
+        solidPaint = new Paint();
+        solidPaint.setColor(getResources().getColor(R.color.a_4));
+        solidPaint.setAntiAlias(true);
 
-        mStrokePaint = new Paint();
-        mStrokePaint.setColor(getResources().getColor(R.color.a_4));
-        mStrokePaint.setStyle(Paint.Style.STROKE);
-        mStrokePaint.setStrokeWidth(getResources().getDimension(R.dimen.ring_width));
-        mStrokePaint.setAntiAlias(true);
+        strokePaint = new Paint();
+        strokePaint.setColor(getResources().getColor(R.color.a_4));
+        strokePaint.setStyle(Paint.Style.STROKE);
+        strokePaint.setStrokeWidth(getResources().getDimension(R.dimen.ring_width));
+        strokePaint.setAntiAlias(true);
 
-        mWipePaint = new Paint();
-        mWipePaint.setColor(Color.WHITE);
-        mWipePaint.setAlpha(51);
-        mWipePaint.setAntiAlias(true);
+        ripplePaint = new Paint();
+        ripplePaint.setColor(Color.WHITE);
+        ripplePaint.setAlpha(51);
+        ripplePaint.setAntiAlias(true);
 
         resetAnimatedValues();
     }
@@ -81,9 +97,9 @@ public class PulsingButtonBackground extends View {
     }
 
     private void resetAnimatedValues() {
-        mSolidMultiplier = 1.0f;
-        mStrokeMultiplier = 1.0f;
-        mStrokePaint.setAlpha(0);
+        solidMultiplier = 1.0f;
+        strokeMultiplier = 1.0f;
+        strokePaint.setAlpha(0);
     }
 
     private Animator getSolidAnimator() {
@@ -100,7 +116,7 @@ public class PulsingButtonBackground extends View {
     private ValueAnimator.AnimatorUpdateListener mSolidUpdateListener = new ValueAnimator.AnimatorUpdateListener() {
         @Override
         public void onAnimationUpdate(ValueAnimator valueAnimator) {
-            mSolidMultiplier = (float) valueAnimator.getAnimatedValue();
+            solidMultiplier = (float) valueAnimator.getAnimatedValue();
         }
     };
 
@@ -115,7 +131,7 @@ public class PulsingButtonBackground extends View {
     private ValueAnimator.AnimatorUpdateListener mStrokeUpdateListener = new ValueAnimator.AnimatorUpdateListener() {
         @Override
         public void onAnimationUpdate(ValueAnimator valueAnimator) {
-            mStrokeMultiplier = (float) valueAnimator.getAnimatedValue();
+            strokeMultiplier = (float) valueAnimator.getAnimatedValue();
         }
     };
 
@@ -125,7 +141,7 @@ public class PulsingButtonBackground extends View {
         alphaAnimator.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationStart(Animator animation) {
-                mStrokePaint.setAlpha(255);
+                strokePaint.setAlpha(255);
             }
         });
         alphaAnimator.setStartDelay(500);
@@ -135,7 +151,7 @@ public class PulsingButtonBackground extends View {
     private ValueAnimator.AnimatorUpdateListener mStrokeAlphaUpdateListener = new ValueAnimator.AnimatorUpdateListener() {
         @Override
         public void onAnimationUpdate(ValueAnimator valueAnimator) {
-            mStrokePaint.setAlpha((int) valueAnimator.getAnimatedValue());
+            strokePaint.setAlpha((int) valueAnimator.getAnimatedValue());
         }
     };
 
@@ -156,20 +172,76 @@ public class PulsingButtonBackground extends View {
     protected void onDraw(Canvas canvas) {
         int width = canvas.getWidth();
         float halfWidth = width / 2.0f;
-        float solidHalfWidth = halfWidth * mSolidMultiplier;
-        float strokeHalfWidth = halfWidth * mStrokeMultiplier;
+        float solidHalfWidth = halfWidth * solidMultiplier;
+        float strokeHalfWidth = halfWidth * strokeMultiplier;
 
         int height = canvas.getHeight();
         float halfHeight = height / 2.0f;
-        float solidHalfHeight = halfHeight * mSolidMultiplier;
-        float strokeHalfHeight = halfHeight * mStrokeMultiplier;
+        float solidHalfHeight = halfHeight * solidMultiplier;
+        float strokeHalfHeight = halfHeight * strokeMultiplier;
 
         canvas.drawARGB(0, 0, 0, 0);
 
         double strokeRadius =  0.515 * Math.sqrt(strokeHalfWidth * strokeHalfWidth + strokeHalfHeight * strokeHalfHeight);
-        canvas.drawCircle(halfWidth, halfHeight, (float) strokeRadius, mStrokePaint);
+        canvas.drawCircle(halfWidth, halfHeight, (float) strokeRadius, strokePaint);
 
         double solidRadius =  0.5 * Math.sqrt(solidHalfWidth * solidHalfWidth + solidHalfHeight * solidHalfHeight);
-        canvas.drawCircle(halfWidth, halfHeight, (float) solidRadius, mSolidPaint);
+        canvas.drawCircle(halfWidth, halfHeight, (float) solidRadius, solidPaint);
+
+        if(rippleRadius > 0 && rippleRadius < endRippleRadius) {
+            canvas.drawCircle(rippleX, rippleY, rippleRadius, ripplePaint);
+            if(touchAction == MotionEvent.ACTION_UP) {
+                invalidate();
+            }
+        }
+    }
+
+    @Override
+    public boolean onTouchEvent(@NonNull MotionEvent event) {
+        rippleX = event.getX();
+        rippleY = event.getY();
+
+        touchAction = event.getAction();
+        switch(event.getAction()) {
+            case MotionEvent.ACTION_UP: {
+                getParent().requestDisallowInterceptTouchEvent(false);
+
+                rippleRadius = 1;
+                endRippleRadius = Math.max(Math.max(Math.max(width - rippleX, rippleX), rippleY), height - rippleY);
+                speed = endRippleRadius / duration * frameRate;
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(rippleRadius < endRippleRadius) {
+                            rippleRadius += speed;
+                            ripplePaint.setAlpha(90 - (int) (rippleRadius / endRippleRadius * 90));
+                            handler.postDelayed(this, frameRate);
+                        }
+                    }
+                }, frameRate);
+                break;
+            }
+            case MotionEvent.ACTION_CANCEL: {
+                getParent().requestDisallowInterceptTouchEvent(false);
+                break;
+            }
+            case MotionEvent.ACTION_DOWN: {
+                getParent().requestDisallowInterceptTouchEvent(true);
+                return true;
+            }
+            case MotionEvent.ACTION_MOVE: {
+                rippleRadius = 0;
+                if(rippleX < 0 || rippleX > width || rippleY < 0 || rippleY > height) {
+                    getParent().requestDisallowInterceptTouchEvent(false);
+                    touchAction = MotionEvent.ACTION_CANCEL;
+                    break;
+                } else {
+                    invalidate();
+                    return true;
+                }
+            }
+        }
+        invalidate();
+        return false;
     }
 }

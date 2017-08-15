@@ -21,15 +21,15 @@ import butterknife.OnClick;
 public class PulsingButtonView extends FrameLayout {
 
     @BindView(R.id.pulsing_background)
-    PulsingButtonBackground mBackground;
+    PulsingButtonBackground pulsingButtonBackground;
     @BindView(R.id.pulsing_text)
-    PulsingButtonTextView mPulsingText;
+    PulsingButtonTextView pulsingButtonTextView;
 
-    private Animator mAnimator;
+    private Animator animator;
     private OnPulseButtonClickListener onPulseButtonClick;
 
-    private boolean mAnimationEnabled = true;
-    private boolean mAlreadyAnimating;
+    private boolean animationEnabled = true;
+    private boolean alreadyAnimating;
 
     public PulsingButtonView(Context context) {
         super(context);
@@ -74,7 +74,7 @@ public class PulsingButtonView extends FrameLayout {
     }
 
     private void updateAnimation() {
-        if (getVisibility() == VISIBLE && mAnimationEnabled) {
+        if (getVisibility() == VISIBLE && animationEnabled) {
             startAnimation();
         } else {
             cancelAnimation();
@@ -82,35 +82,35 @@ public class PulsingButtonView extends FrameLayout {
     }
 
     private void cancelAnimation() {
-        if (mAnimator != null) {
-            mAlreadyAnimating = false;
-            mAnimator.cancel();
-            mAnimator = null;
+        if (animator != null) {
+            alreadyAnimating = false;
+            animator.cancel();
+            animator = null;
         }
     }
 
     private void startAnimation() {
-        if (mAlreadyAnimating) {
+        if (alreadyAnimating) {
             return;
         }
-        mAlreadyAnimating = true;
+        alreadyAnimating = true;
         AnimatorSet animatorSet = new AnimatorSet();
-        animatorSet.playTogether(mBackground.getAnimator(), mPulsingText.getAnimator());
+        animatorSet.playTogether(pulsingButtonBackground.getAnimator(), pulsingButtonTextView.getAnimator());
         animatorSet.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                if (mAlreadyAnimating) {
-                    mAlreadyAnimating = false;
+                if (alreadyAnimating) {
+                    alreadyAnimating = false;
                     updateAnimation();
                 }
             }
         });
         animatorSet.start();
-        mAnimator = animatorSet;
+        animator = animatorSet;
     }
 
     @OnClick(R.id.pulsing_button)
-    void onClickThis() {
+     void onClickThis() {
         onPulseButtonClick.onPulseButtonClick();
     }
 
