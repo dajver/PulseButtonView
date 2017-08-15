@@ -8,6 +8,7 @@
     tools:context="com.project.dajver.pulsingbutton.MainActivity">
 
     <com.project.dajver.pulsingbutton.view.PulsingButtonView
+        android:id="@+id/pulsing_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 

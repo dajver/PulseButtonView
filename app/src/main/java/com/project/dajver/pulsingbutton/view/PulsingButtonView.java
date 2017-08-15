@@ -7,7 +7,6 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.widget.FrameLayout;
-import android.widget.Toast;
 
 import com.project.dajver.pulsingbutton.R;
 
@@ -27,6 +26,7 @@ public class PulsingButtonView extends FrameLayout {
     PulsingButtonTextView mPulsingText;
 
     private Animator mAnimator;
+    private OnPulseButtonClickListener onPulseButtonClick;
 
     private boolean mAnimationEnabled = true;
     private boolean mAlreadyAnimating;
@@ -109,15 +109,16 @@ public class PulsingButtonView extends FrameLayout {
         mAnimator = animatorSet;
     }
 
-    @Override
-    public void setOnClickListener(OnClickListener clickListener) {
-        if (!hasOnClickListeners()) {
-            super.setOnClickListener(clickListener);
-        }
-    }
-
     @OnClick(R.id.pulsing_button)
     void onClickThis() {
-        Toast.makeText(getContext(), "Button clicked", Toast.LENGTH_LONG).show();
+        onPulseButtonClick.onPulseButtonClick();
+    }
+
+    public void setOnPulseButtonClick(OnPulseButtonClickListener onPulseButtonClick) {
+        this.onPulseButtonClick = onPulseButtonClick;
+    }
+
+    public interface OnPulseButtonClickListener {
+        void onPulseButtonClick();
     }
 }
