@@ -61,11 +61,11 @@ public class PulsingButtonBackground extends View {
 
     private void initialize() {
         solidPaint = new Paint();
-        solidPaint.setColor(getResources().getColor(R.color.a_4));
+        solidPaint.setColor(getResources().getColor(R.color.colorPrimary));
         solidPaint.setAntiAlias(true);
 
         strokePaint = new Paint();
-        strokePaint.setColor(getResources().getColor(R.color.a_4));
+        strokePaint.setColor(getResources().getColor(R.color.colorPrimary));
         strokePaint.setStyle(Paint.Style.STROKE);
         strokePaint.setStrokeWidth(getResources().getDimension(R.dimen.ring_width));
         strokePaint.setAntiAlias(true);
